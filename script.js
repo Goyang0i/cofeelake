@@ -659,7 +659,7 @@ const response = await fetch(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apikey": "ВСТАВЬ_СЮДА_СВОЙ_PUBLISHABLE_KEY"
+      "apikey": "sb_publishable_cHjqEPQgSJdWA5y4J-iMXg_O3ijnJf8"
     },
     body: JSON.stringify({
       name,
