@@ -652,19 +652,25 @@ const orderItems = state.basket.map((item) => ({
   }
 
   try {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        phone,
-        pickupTime,
-        paymentMethod,
-        items: orderItems
-      })
-    });
+    
+const response = await fetch(
+  "https://hcutmdkxthizlqvqwcop.supabase.co/functions/v1/clever-action",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": "ВСТАВЬ_СЮДА_СВОЙ_PUBLISHABLE_KEY"
+    },
+    body: JSON.stringify({
+      name,
+      phone,
+      pickupTime,
+      paymentMethod,
+      items: orderItems
+    })
+  }
+);
+
 
     const result = await response.json().catch(() => ({}));
 
