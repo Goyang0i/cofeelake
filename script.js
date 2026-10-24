@@ -710,7 +710,13 @@ const response = await fetch(
     closeModal($("#checkout-modal"));
     $("#checkout-form").reset();
 
-    playSound(addToCartSound);
+   addToCartSound.currentTime = 0;
+
+addToCartSound.play()
+  .then(() => console.log("Checkout sound played!"))
+  .catch((error) => {
+    console.error("Checkout sound error:", error);
+  });
     showToast(`Order ${order.number} placed successfully!`);
     $("#orders").scrollIntoView({ behavior: "smooth" });
   } catch (error) {
