@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7f0">
+  <title>Coffee Lake | Your Campus Café</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <a href="#" class="logo">
+      <span class="logo-icon">C</span>
+      <span>Coffee <strong>Lake</strong><small>YOUR CAMPUS CAFÉ</small></span>
+    </a>
+
+    <nav class="navigation">
+      <a href="#menu">Menu</a>
+      <a href="#about">About us</a>
+      <a href="#orders">My orders</a>
+    </nav>
+
+    <button class="basket-button" id="basket-button" type="button">
+      Basket <span id="basket-count">0</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">YOUR CAMPUS COFFEE SPOT</span>
+        <h1>Good coffee.<br><em>Better breaks.</em></h1>
+        <p>Your favourite drinks, ready when you are. Order ahead and spend your break enjoying it, not waiting in line.</p>
+        <a class="primary-button" href="#menu">Explore the menu <span>↗</span></a>
+        <div class="hero-note"><span class="status-dot"></span> Made fresh for every order</div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=85" alt="Freshly brewed coffee in a welcoming café">
+        <div class="image-caption">
+          <span>YOUR DAILY RITUAL</span>
+          <strong>A little moment for yourself.</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="benefits">
+      <div><span class="benefit-icon">◷</span><span><strong>Save your break</strong><small>Order before class ends</small></span></div>
+      <div><span class="benefit-icon">✳</span><span><strong>Made fresh</strong><small>Prepared just for you</small></span></div>
+      <div><span class="benefit-icon">♡</span><span><strong>Every 7th drink free</strong><small>Collect loyalty stamps</small></span></div>
+    </section>
+
+    <section class="menu-section" id="menu">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">MADE FOR YOUR MOMENT</span>
+          <h2>Find your favourite.</h2>
+          <p>Something familiar or something new. Your next favourite is here.</p>
+        </div>
+        <div class="search-wrap">
+          <span>⌕</span>
+          <input id="search-input" type="search" placeholder="Search drinks..." aria-label="Search drinks">
+        </div>
+      </div>
+
+      <div class="category-list" id="category-list">
+        <button class="category-button active" data-category="All">All drinks</button>
+        <button class="category-button" data-category="Coffee">Coffee</button>
+        <button class="category-button" data-category="Bubble Tea">Bubble tea</button>
+        <button class="category-button" data-category="Bumbles">Bumbles</button>
+        <button class="category-button" data-category="Tea">Tea</button>
+      </div>
+
+      <div class="menu-meta"><span id="results-count">Our menu</span><span>Prices in ₸</span></div>
+      <div class="product-grid" id="product-grid"></div>
+    </section>
+
+    <section class="loyalty-section" id="about">
+      <div class="loyalty-symbol">✳</div>
+      <div>
+        <span class="eyebrow">A LITTLE SOMETHING EXTRA</span>
+        <h2>Your 7th drink is on us.</h2>
+        <p>Every drink brings you one step closer to a free favourite. Your stamps are saved on this device.</p>
+      </div>
+      <div class="loyalty-progress">
+        <div class="stamp-row" id="stamp-row"></div>
+        <span id="loyalty-text">0 of 7 drinks collected</span>
+      </div>
+    </section>
+
+    <section class="orders-section" id="orders">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">YOUR ORDER, YOUR TIME</span>
+          <h2>Order tracking.</h2>
+          <p>Keep an eye on your latest order.</p>
+        </div>
+      </div>
+      <div class="order-status-card" id="order-status-card">
+        <div class="empty-order-icon">↗</div>
+        <div><strong>No recent order</strong><p>Your order status will appear here after checkout.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="#" class="logo footer-logo">
+      <span class="logo-icon">C</span>
+      <span>Coffee <strong>Lake</strong><small>YOUR CAMPUS CAFÉ</small></span>
+    </a>
+    <p>Made for campus life. Brewed with care.</p>
+    <span>© <span id="current-year"></span> Coffee Lake</span>
+  </footer>
+
+  <div class="overlay" id="overlay" hidden></div>
+
+  <aside class="basket-panel" id="basket-panel" aria-label="Shopping basket" aria-hidden="true">
+    <div class="panel-heading">
+      <div><span class="eyebrow">YOUR SELECTION</span><h2>Your basket</h2></div>
+      <button class="icon-button" id="close-basket" type="button" aria-label="Close basket">×</button>
+    </div>
+    <div class="basket-items" id="basket-items"></div>
+    <div class="basket-footer">
+      <div class="total-line"><span>Total</span><strong id="basket-total">0 ₸</strong></div>
+      <button class="primary-button full-button" id="checkout-button" type="button">Continue to checkout →</button>
+      <p class="small-note">Your order is confirmed after you submit checkout.</p>
+    </div>
+  </aside>
+
+  <div class="modal" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" hidden>
+    <div class="modal-card product-modal-card">
+      <button class="icon-button modal-close" data-close-modal type="button" aria-label="Close">×</button>
+      <img id="modal-product-image" class="modal-product-image" src="" alt="">
+      <div class="modal-product-content">
+        <span class="eyebrow" id="modal-product-category"></span>
+        <h2 id="product-modal-title"></h2>
+        <p id="modal-product-description"></p>
+        <label for="drink-size">Drink size</label>
+        <select id="drink-size"></select>
+        <label for="drink-sugar">Sugar level</label>
+        <select id="drink-sugar">
+        <option value="No sugar">No sugar</option>
+        <option value="Low">Low</option>
+        <option value="Normal">Normal</option>
+        <option value="Extra">Extra</option>
+        </select>
+        <label for="drink-syrup">Extra syrup (+150 ₸)</label>
+        <select id="drink-syrup">
+          <option value="None">No extra syrup</option>
+          <option value="Vanilla">Vanilla</option>
+          <option value="Caramel">Caramel</option>
+          <option value="Hazelnut">Hazelnut</option>
+          <option value="Strawberry">Strawberry</option>
+        </select>
+        <div class="modal-price-line"><span>Price</span><strong id="modal-price"></strong></div>
+        <button class="primary-button full-button" id="add-to-basket" type="button">Add to basket</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title" hidden>
+    <div class="modal-card checkout-card">
+      <button class="icon-button modal-close" data-close-modal type="button" aria-label="Close">×</button>
+      <span class="eyebrow">ALMOST THERE</span>
+      <h2 id="checkout-title">Complete your order.</h2>
+      <p class="checkout-intro">Tell us a little about your order so we can get it ready.</p>
+      <form id="checkout-form">
+        <label for="customer-name">Your name *</label>
+        <input id="customer-name" name="name" type="text" maxlength="80" autocomplete="name" required placeholder="Enter your name">
+        <label for="customer-phone">Phone number (optional)</label>
+        <input id="customer-phone" name="phone" type="tel" maxlength="25" autocomplete="tel" placeholder="+7 700 000 00 00">
+        <label for="pickup-time">Pickup time *</label>
+        <select id="pickup-time" name="pickupTime" required>
+          <option value="Next break">Next break</option>
+          <option value="In 15 minutes">In 15 minutes</option>
+          <option value="In 30 minutes">In 30 minutes</option>
+          <option value="As soon as possible">As soon as possible</option>
+        </select>
+        <label for="payment-method">Payment method *</label>
+        <select id="payment-method" name="paymentMethod" required>
+          <option value="Pay at the counter">Pay at the counter</option>
+          <option value="Card at pickup">Card at pickup</option>
+          <option value="Kaspi QR">Kaspi QR (payment arranged at pickup)</option>
+        </select>
+        <div class="checkout-total"><span>Order total</span><strong id="checkout-total">0 ₸</strong></div>
+        <button class="primary-button full-button" type="submit">Place order →</button>
+        <p class="small-note">Online payment is not processed by this demo website.</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
