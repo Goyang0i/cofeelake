@@ -654,7 +654,7 @@ const orderItems = state.basket.map((item) => ({
   try {
     
 const response = await fetch(
-  "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/rest/v1/",
+  "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/functions/v1/clever-api",
   {
     method: "POST",
     headers: {
