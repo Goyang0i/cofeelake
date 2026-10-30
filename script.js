@@ -675,10 +675,14 @@ const response = await fetch(
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(
-        result.error || "The order could not be saved."
-      );
-    }
+  console.error("Supabase error:", response.status, result);
+  throw new Error(
+    result.message ||
+    result.error ||
+    result.msg ||
+    `Server error: ${response.status}`
+  );
+}
 
     const order = {
       number: result.orderNumber,
