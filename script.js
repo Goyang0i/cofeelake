@@ -942,4 +942,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 
-initialize();
+try {
+  console.log("CoffeeLake: starting...");
+  initialize();
+  console.log("CoffeeLake: initialized successfully");
+} catch (error) {
+  console.error("CoffeeLake initialization failed:", error);
+}
