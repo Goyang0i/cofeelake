@@ -250,15 +250,19 @@ const products = [
   }
 ];
 
+
 const state = {
   category: "All",
   search: "",
   selectedProduct: null,
   selectedSizeIndex: 0,
   basket: loadJSON("coffeelake-basket", []),
-  loyalty: loadJSON("coffeelake-loyalty", { stamps: 0 }),
-  latestOrder: loadJSON("coffeelake-latest-order", null)
+  loyalty: { stamps: 0 },
+  orderHistory: [],
+  historyPhone: "",
+  historyTimer: null
 };
+
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -558,27 +562,159 @@ function showToast(message) {
   }, 2600);
 }
 
+
 function renderLoyalty() {
-  const stamps = Math.max(0, Math.min(7, Number(state.loyalty.stamps) || 0));
+  const stamps = Math.max(
+    0,
+    Math.min(7, Number(state.loyalty.stamps) || 0)
+  );
 
   $("#stamp-row").innerHTML = Array.from({ length: 7 }, (_, index) => `
-    <span class="stamp ${index < stamps ? "filled" : ""}">${index < stamps ? "✓" : "·"}</span>
+    <span class="stamp ${index < stamps ? "filled" : ""}">
+      ${index < stamps ? "✓" : "·"}
+    </span>
   `).join("");
 
   $("#loyalty-text").textContent =
-    stamps >= 7 ? "Your free drink is ready!" : `${stamps} of 7 drinks collected`;
+    stamps >= 7
+      ? "Your free drink is ready!"
+      : `${stamps} of 7 orders collected`;
 }
 
-function renderLatestOrder() {
-  const container = $("#order-status-card");
-  const order = state.latestOrder;
+function getStatusLabel(status) {
+  const labels = {
+    received: "Order received",
+    preparing: "Preparing",
+    ready: "Ready for pickup",
+    completed: "Completed",
+    cancelled: "Cancelled"
+  };
 
-  if (!order) {
+  return labels[status] || "Status unavailable";
+}
+
+function renderOrderHistory() {
+  const container = $("#order-status-card");
+
+  if (!state.orderHistory.length) {
     container.innerHTML = `
       <div class="empty-order-icon">↗</div>
-      <div><strong>No recent order</strong><p>Your order status will appear here after checkout.</p></div>`;
+      <div>
+        <strong>No orders found</strong>
+        <p>We couldn't find any orders for this phone number.</p>
+      </div>`;
     return;
   }
+
+  container.innerHTML = state.orderHistory.map((order) => {
+    const items = Array.isArray(order.items) ? order.items : [];
+
+    const itemList = items.map((item) => `
+      <li>
+        ${escapeHTML(item.name)} · ${escapeHTML(item.size)}
+        × ${Number(item.quantity) || 0}
+      </li>
+    `).join("");
+
+    const date = order.createdAt
+      ? new Date(order.createdAt).toLocaleString("en-GB")
+      : "";
+
+    return `
+      <article class="history-order">
+        <div class="history-order-heading">
+          <strong>Order ${escapeHTML(order.orderNumber)}</strong>
+          <span class="order-status-pill">
+            ${escapeHTML(getStatusLabel(order.status))}
+          </span>
+        </div>
+
+        <p>${escapeHTML(order.name || "")} · ${escapeHTML(date)}</p>
+        <p>Pickup: ${escapeHTML(order.pickupTime || "Not specified")}</p>
+
+        <ul class="history-order-items">${itemList}</ul>
+
+        <div class="history-order-total">
+          <span>Total</span>
+          <strong>${money(order.total)}</strong>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadOrderHistory(phone, showMessage = false) {
+  const cleanPhone = String(phone || "").trim();
+
+  if (cleanPhone.length < 5) {
+    if (showMessage) {
+      showToast("Please enter a valid phone number.");
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/functions/v1/clever-api",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd"
+        },
+        body: JSON.stringify({
+          action: "history",
+          phone: cleanPhone
+        })
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        result.error || `Server error: ${response.status}`
+      );
+    }
+
+    state.historyPhone = cleanPhone;
+    state.orderHistory = Array.isArray(result.orders)
+      ? result.orders
+      : [];
+
+    state.loyalty.stamps = Number(result.stamps) || 0;
+
+    renderLoyalty();
+    renderOrderHistory();
+
+    if (showMessage) {
+      showToast("Order history updated.");
+    }
+  } catch (error) {
+    console.error("Order history request failed:", error);
+
+    if (showMessage) {
+      showToast(error.message || "Could not load order history.");
+    }
+  }
+}
+
+function startOrderHistoryPolling(phone) {
+  if (state.historyTimer) {
+    clearInterval(state.historyTimer);
+  }
+
+  state.historyPhone = String(phone || "").trim();
+
+  if (state.historyPhone.length < 5) return;
+
+  // Refresh the displayed status every second.
+  state.historyTimer = setInterval(() => {
+    if (document.visibilityState === "visible") {
+      loadOrderHistory(state.historyPhone);
+    }
+  }, 5000);
+}
 
   container.innerHTML = `
     <div class="empty-order-icon">✓</div>
@@ -684,40 +820,26 @@ const response = await fetch(
   );
 }
 
-    const order = {
-      number: result.orderNumber,
-      name,
-      phone,
-      pickupTime,
-      paymentMethod,
-      items: state.basket.map((item) => ({ ...item })),
-      total: Number(result.total),
-      status: result.status || "Received",
-      createdAt: new Date().toISOString()
-    };
+    
+const orderNumber = result.orderNumber || "New order";
 
-    state.latestOrder = order;
-    saveJSON("coffeelake-latest-order", order);
+state.basket = [];
+saveJSON("coffeelake-basket", state.basket);
 
+renderBasket();
 
-    state.basket = [];
-    saveJSON("coffeelake-basket", state.basket);
+closeModal($("#checkout-modal"));
+$("#checkout-form").reset();
 
-    renderBasket();
-    renderLoyalty();
-    renderLatestOrder();
-    closeModal($("#checkout-modal"));
-    $("#checkout-form").reset();
+$("#history-phone").value = phone;
 
-   addToCartSound.currentTime = 0;
+await loadOrderHistory(phone);
+startOrderHistoryPolling(phone);
 
-addToCartSound.play()
-  .then(() => console.log("Checkout sound played!"))
-  .catch((error) => {
-    console.error("Checkout sound error:", error);
-  });
-    showToast(`Order ${order.number} placed successfully!`);
-    $("#orders").scrollIntoView({ behavior: "smooth" });
+showToast(`Order ${orderNumber} placed successfully!`);
+
+$("#orders").scrollIntoView({ behavior: "smooth" });
+
   } catch (error) {
     console.error("Order submission failed:", error);
 
@@ -777,6 +899,19 @@ function initialize() {
   $("#overlay").addEventListener("click", closeBasket);
   $("#checkout-button").addEventListener("click", openCheckout);
   $("#checkout-form").addEventListener("submit", placeOrder);
+  
+  $("#order-lookup-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const phone = $("#history-phone").value.trim();
+
+    await loadOrderHistory(phone, true);
+
+    if (state.historyPhone === phone) {
+      startOrderHistoryPolling(phone);
+    }
+  });
+
 
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -797,10 +932,23 @@ function initialize() {
     document.querySelectorAll(".modal:not([hidden])").forEach(closeModal);
   });
 
-  renderMenu();
-  renderBasket();
-  renderLoyalty();
-  renderLatestOrder();
+ 
+renderMenu();
+renderBasket();
+renderLoyalty();
+renderOrderHistory();
+
 }
+
+
+document.addEventListener("visibilitychange", () => {
+  if (
+    document.visibilityState === "visible" &&
+    state.historyPhone.length >= 5
+  ) {
+    loadOrderHistory(state.historyPhone);
+  }
+});
+
 
 initialize();
