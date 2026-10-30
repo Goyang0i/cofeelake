@@ -716,15 +716,6 @@ function startOrderHistoryPolling(phone) {
   }, 5000);
 }
 
-  container.innerHTML = `
-    <div class="empty-order-icon">✓</div>
-    <div>
-      <strong>Order ${escapeHTML(order.number)}</strong>
-      <p>${escapeHTML(order.name)} · Pickup: ${escapeHTML(order.pickupTime)}</p>
-      <p>${order.items.length} drink(s) · ${money(order.total)}</p>
-      <span class="order-status-pill">${escapeHTML(order.status)}</span>
-    </div>`;
-}
 
 function openCheckout() {
   if (!state.basket.length) {
