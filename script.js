@@ -654,12 +654,12 @@ const orderItems = state.basket.map((item) => ({
   try {
     
 const response = await fetch(
-  "https://hcutmdkxthizlqvqwcop.supabase.co/functions/v1/clever-action",
+  "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/rest/v1/",
   {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apikey": "sb_publishable_cHjqEPQgSJdWA5y4J-iMXg_O3ijnJf8"
+      "apikey": "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd"
     },
     body: JSON.stringify({
       name,
@@ -695,11 +695,6 @@ const response = await fetch(
     state.latestOrder = order;
     saveJSON("coffeelake-latest-order", order);
 
-    const drinkCount = getBasketCount();
-    state.loyalty.stamps =
-      (Number(state.loyalty.stamps) + drinkCount) % 7;
-
-    saveJSON("coffeelake-loyalty", state.loyalty);
 
     state.basket = [];
     saveJSON("coffeelake-basket", state.basket);
