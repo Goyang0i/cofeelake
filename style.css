@@ -1146,3 +1146,70 @@ h1, h2 {
     height: 29px;
   }
 }
+
+
+.order-lookup-form {
+  margin: 24px 0;
+  max-width: 620px;
+}
+
+.order-lookup-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.order-lookup-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.order-lookup-controls input {
+  flex: 1;
+  min-width: 200px;
+  padding: 14px 16px;
+  border: 1px solid #dce4d8;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.history-order {
+  padding: 22px;
+  border: 1px solid #e2e9df;
+  border-radius: 16px;
+  background: #fff;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.history-order-heading,
+.history-order-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.history-order-items {
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.history-order-total {
+  border-top: 1px solid #e8ede5;
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.order-status-pill {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #edf3e9;
+  color: #284b38;
+  font-size: 13px;
+  font-weight: 700;
+}
+
