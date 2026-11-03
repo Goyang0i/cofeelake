@@ -565,23 +565,33 @@ function showToast(message) {
 }
 
 
+
 function renderLoyalty() {
   const stamps = Math.max(
     0,
-    Math.min(7, Number(state.loyalty.stamps) || 0)
+    Math.min(6, Number(state.loyalty.stamps) || 0)
   );
 
-  $("#stamp-row").innerHTML = Array.from({ length: 7 }, (_, index) => `
-    <span class="stamp ${index < stamps ? "filled" : ""}">
-      ${index < stamps ? "✓" : "·"}
-    </span>
-  `).join("");
+  const rewards = Math.max(
+    0,
+    Number(state.loyalty.rewardsAvailable) || 0
+  );
+
+  $("#stamp-row").innerHTML = Array.from(
+    { length: 7 },
+    (_, index) => `
+      <span class="stamp ${index < stamps ? "filled" : ""}">
+        ${index < stamps ? "✓" : "·"}
+      </span>
+    `
+  ).join("");
 
   $("#loyalty-text").textContent =
-    stamps >= 7
-      ? "Your free drink is ready!"
+    rewards > 0
+      ? `You have ${rewards} free drink reward${rewards === 1 ? "" : "s"}!`
       : `${stamps} of 7 orders collected`;
 }
+
 
 function getStatusLabel(status) {
   const labels = {
