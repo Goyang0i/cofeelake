@@ -257,7 +257,9 @@ const state = {
   selectedProduct: null,
   selectedSizeIndex: 0,
   basket: loadJSON("coffeelake-basket", []),
-  loyalty: { stamps: 0 },
+  loyalty: { stamps: 0,
+           rewardsAvailable: 0
+           },
   orderHistory: [],
   historyPhone: "",
   historyTimer: null
@@ -683,6 +685,9 @@ async function loadOrderHistory(phone, showMessage = false) {
       : [];
 
     state.loyalty.stamps = Number(result.stamps) || 0;
+
+    state.loyalty.rewardsAvailable =
+  Number(result.rewardsAvailable) || 0;
 
     renderLoyalty();
     renderOrderHistory();
