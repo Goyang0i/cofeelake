@@ -256,6 +256,7 @@ const state = {
   search: "",
   selectedProduct: null,
   selectedSizeIndex: 0,
+  rewardMode: false,
   basket: loadJSON("coffeelake-basket", []),
   loyalty: { stamps: 0,
            rewardsAvailable: 0
@@ -425,9 +426,23 @@ function updateModalPrice() {
   if (!product) return;
 
   const size = product.sizes[state.selectedSizeIndex];
-  const syrupExtra = $("#drink-syrup").value !== "None" ? 150 : 0;
+  if (!size) return;
 
-  $("#modal-price").textContent = money(size.price + syrupExtra);
+  const isReward = state.rewardMode === true;
+  const syrupSelect = $("#drink-syrup");
+
+  syrupSelect.disabled = isReward;
+
+  if (isReward) {
+    syrupSelect.value = "None";
+  }
+
+  const syrupExtra =
+    !isReward && syrupSelect.value !== "None" ? 150 : 0;
+
+  const price = isReward ? 0 : size.price + syrupExtra;
+
+  $("#modal-price").textContent = money(price);
 }
 
 function addConfiguredDrink() {
