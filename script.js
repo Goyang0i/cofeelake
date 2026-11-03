@@ -435,14 +435,19 @@ function addConfiguredDrink() {
   if (!product) return;
 
   const size = product.sizes[state.selectedSizeIndex];
+  if (!size) return;
+
   const sugar = $("#drink-sugar").value;
-  const syrup = $("#drink-syrup").value;
+  const isReward = state.rewardMode === true;
+  const syrup = isReward ? "None" : $("#drink-syrup").value;
+  const unitPrice = isReward ? 0 : size.price;
 
   const existing = state.basket.find((item) =>
     item.productId === product.id &&
     item.size === size.name &&
     item.sugar === sugar &&
-    item.syrup === syrup
+    item.syrup === syrup &&
+    item.isReward === isReward
   );
 
   if (existing) {
@@ -457,18 +462,26 @@ function addConfiguredDrink() {
       size: size.name,
       sugar,
       syrup,
-      unitPrice: size.price,
-      quantity: 1
+      unitPrice,
+      quantity: 1,
+      isReward
     });
   }
 
-  
+  if (isReward) {
+    state.rewardMode = false;
+  }
+
   saveJSON("coffeelake-basket", state.basket);
   renderBasket();
   closeModal($("#product-modal"));
   playSound(addToCartSound);
-  showToast(`${product.name} added to your basket.`);
 
+  showToast(
+    isReward
+      ? `${product.name} added as a free reward!`
+      : `${product.name} added to your basket.`
+  );
 }
 
 function renderBasket() {
