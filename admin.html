@@ -1302,33 +1302,121 @@
 
 
     
-    function renderPopularDrinks() {
-      const totals = new Map();
+    // Пути к фотографиям относительно файла admin.html
+const drinkImages = {
+  "americano": "images/americano.jpg",
+  "berry-fruit-tea": "images/berry-fruit-tea.jpg",
+  "bumble-cherry": "images/bumble-cherry.webp",
+  "cherry-bumble": "images/cherry-bumble.jpg",
+  "espresso": "images/espresso.jpg",
+  "lemon-iced-tea": "images/lemon-iced-tea.jpg",
+  "masala-tea": "images/masala-tea.jpg",
+  "orange-bubble-tea": "images/orange-bubble-tea.jpg",
+  "pomegranate-iced-tea": "images/pomegranate-iced-tea.jpg",
+  "sea-buckthorn-tea": "images/sea-buckthorn-tea.jpg",
+  "tashkent-tea": "images/tashkent-tea.jpg",
+  "apple-bumble": "images/apple-bumble.webp",
+  "blueberry-bubble-tea": "images/blueberry-bubble-tea.webp",
+  "bumble-peach": "images/bumble-peach.jpg",
+  "double-americano": "images/double-americano.jpg",
+  "karak-chai": "images/karak-chai.jpg",
+  "mango-bubble-tea": "images/mango-bubble-tea.jpg",
+  "moroccan-tea": "images/moroccan-tea.jpg",
+  "oreo-bubble-tea": "images/oreo-bubble-tea.jpg",
+  "raspberry-iced-tea": "images/raspberry-iced-tea.jpg",
+  "strawberry_bubble_tea": "images/strawberry_bubble_tea.jpg",
+  "toxic-matcha-bubble-tea": "images/toxic-matcha-bubble-tea.jpg",
+  "a-thousand-and-one-nights": "images/a-thousand-and-one-nights.jpg",
+  "blue-matcha-bubble-tea": "images/blue-matcha-bubble-tea.jpg",
+  "cappuccino": "images/cappuccino.jpg",
+  "double-espresso": "images/double-espresso.jpg",
+  "latte": "images/latte.jpg",
+  "mango-passion-fruit-tea": "images/mango-passion-fruit-tea.jpg",
+  "mulled-tea": "images/mulled-tea.jpg",
+  "peach-iced-tea": "images/peach-iced-tea.jpg",
+  "sakura-bubble-tea": "images/sakura-bubble-tea.webp",
+  "strawberry-bubble-tea": "images/strawberry-bubble-tea.jpg"
+};
 
-      orderItems.forEach(item => {
-        const order = orders.find(
-          entry => String(entry.id) === String(item.order_id)
-        );
+function renderPopularDrinks() {
+  const totals = new Map();
 
-        if (!order || order.status === "cancelled") return;
+  orderItems.forEach(item => {
+    const order = orders.find(
+      entry => String(entry.id) === String(item.order_id)
+    );
 
-        const name = item.product_name || "Unknown drink";
-        const quantity = Number(item.quantity || 1);
+    if (!order || order.status === "cancelled") return;
 
-        totals.set(name, (totals.get(name) || 0) + quantity);
-      });
+    const name = item.product_name || "Unknown drink";
+    const quantity = Number(item.quantity || 1);
 
-      const popular = [...totals.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4);
+    totals.set(name, (totals.get(name) || 0) + quantity);
+  });
 
-      const list = $("popular-list");
+  const popular = [...totals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
 
-      if (!popular.length) {
-        list.innerHTML = '<div class="empty-note">No drink data yet.</div>';
-        return;
-      }
+  const list = $("popular-list");
 
+  if (!popular.length) {
+    list.innerHTML = '<div class="empty-note">No drink data yet.</div>';
+    return;
+  }
+
+  const max = popular[0][1];
+  const total = popular.reduce((sum, item) => sum + item[1], 0);
+
+  list.innerHTML = popular.map(([name, count]) => {
+    const percent = total ? (count / total) * 100 : 0;
+    const width = max ? (count / max) * 100 : 0;
+
+    // Сначала ищем название с подчёркиваниями,
+    // затем вариант с дефисами.
+    const rawKey = String(name)
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-");
+
+    const normalizedKey = rawKey.replace(/_/g, "-");
+
+    const image =
+      drinkImages[rawKey] || drinkImages[normalizedKey];
+
+    const thumbnail = image
+      ? `<img
+           src="${image}"
+           alt="${escapeHTML(name)}"
+           loading="lazy"
+           onerror="this.style.display='none'; this.parentElement.textContent='☕';"
+         >`
+      : "☕";
+
+    return `
+      <div class="popular-item">
+        <div class="drink-thumb">${thumbnail}</div>
+
+        <div>
+          <div class="drink-name">
+            ${escapeHTML(name)}
+          </div>
+
+          <div class="drink-meta">
+            ${count} orders &nbsp; ${percent.toFixed(1)}%
+          </div>
+
+          <div class="progress-track">
+            <div
+              class="progress-fill"
+              style="width:${width}%"
+            ></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
       const max = popular[0][1];
       const total = popular.reduce((sum, item) => sum + item[1], 0);
 
