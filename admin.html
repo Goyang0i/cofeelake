@@ -116,26 +116,78 @@
     const button = document.getElementById("login-button");
     const message = document.getElementById("message");
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      message.textContent = "";
-      button.disabled = true;
-      button.textContent = "Signing in...";
+   
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+  message.textContent = "";
+  message.style.color = "#a33b32";
+  button.disabled = true;
+  button.textContent = "Signing in...";
 
-      const { error } = await supabase.auth.signInWithPassword({
+  try {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    const { data: loginData, error: loginError } =
+      await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (error) {
-        message.textContent = "Sign in failed. Check your email and password.";
-        button.disabled = false;
-        button.textContent = "Sign In";
-        return;
+    if (loginError) {
+      throw new Error("Sign in failed. Check your email and password.");
+    }
+
+    const accessToken = loginData.session?.access_token;
+
+    if (!accessToken) {
+      throw new Error("Could not get your login session.");
+    }
+
+    message.textContent = "Checking staff access...";
+
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/clever-api`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          action: "admin_orders"
+        })
       }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Server error: ${response.status}`);
+    }
+
+    message.style.color = "#284B38";
+    message.textContent =
+      `Access granted! Loaded ${result.orders.length} orders.`;
+
+    console.log("Admin orders:", result.orders);
+    console.log("Order items:", result.items);
+
+  } catch (error) {
+    console.error("Admin login error:", error);
+
+    message.style.color = "#a33b32";
+    message.textContent =
+      error instanceof Error ? error.message : "Something went wrong.";
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "Sign In";
+  }
+});
+
 
       message.style.color = "#284B38";
       message.textContent = "Signed in. Loading your dashboard...";
