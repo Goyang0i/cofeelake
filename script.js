@@ -936,13 +936,11 @@ function initialize() {
     }
   });
 
-  $("#use-reward-button").addEventListener("click", () => {
+$("#use-reward-button").addEventListener("click", () => {
   if (state.loyalty.rewardsAvailable < 1) {
     showToast("You don't have a free drink reward yet.");
     return;
   }
-
-  state.rewardMode = true;
 
   const allowedRewards = [
     "espresso",
@@ -958,13 +956,12 @@ function initialize() {
   );
 
   if (!rewardProducts.length) {
-    state.rewardMode = false;
     showToast("No reward drinks are available.");
     return;
   }
 
-  // Пока выбираем первый доступный напиток.
-  openProduct(rewardProducts[0].id);
+  state.rewardMode = true;
+  openRewardDrinkPicker(rewardProducts);
 });
 
 
