@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Lake — Staff Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #F5F7F0;
+      color: #284B38;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 40px;
+      background: white;
+      border: 1px solid #e3e9df;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px #284b3810;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font: 700 32px "Playfair Display", serif;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin: 0 0 30px;
+      color: #788579;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #dce4d9;
+      border-radius: 10px;
+      font: inherit;
+      outline-color: #284B38;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #284B38;
+      color: white;
+      font: 600 15px "DM Sans", sans-serif;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .65;
+      cursor: wait;
+    }
+
+    #message {
+      min-height: 20px;
+      margin: 16px 0 0;
+      color: #a33b32;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="login-card">
+    <h1>Coffee Lake</h1>
+    <p class="subtitle">Staff Administration</p>
+
+    <form id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <button id="login-button" type="submit">Sign In</button>
+      <p id="message" role="status"></p>
+    </form>
+  </main>
+
+  <script type="module">
+    import { createClient } from
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const SUPABASE_URL = "https://zlzfdpsnrpnhpqbjnkhl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById("login-form");
+    const button = document.getElementById("login-button");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      button.disabled = true;
+      button.textContent = "Signing in...";
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        message.textContent = "Sign in failed. Check your email and password.";
+        button.disabled = false;
+        button.textContent = "Sign In";
+        return;
+      }
+
+      message.style.color = "#284B38";
+      message.textContent = "Signed in. Loading your dashboard...";
+
+    });
+  </script>
+</body>
+</html>
