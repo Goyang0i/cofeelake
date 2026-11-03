@@ -103,125 +103,89 @@
     </form>
   </main>
 
-  <script type="module">
-    import { createClient } from
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  
+<script type="module">
+  import { createClient } from
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    const SUPABASE_URL = "https://zlzfdpsnrpnhpqbjnkhl.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd";
+  const SUPABASE_URL = "https://zlzfdpsnrpnhpqbjnkhl.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const form = document.getElementById("login-form");
-    const button = document.getElementById("login-button");
-    const message = document.getElementById("message");
+  const form = document.getElementById("login-form");
+  const button = document.getElementById("login-button");
+  const message = document.getElementById("message");
 
-   
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  message.textContent = "";
-  message.style.color = "#a33b32";
-  button.disabled = true;
-  button.textContent = "Signing in...";
+    message.textContent = "";
+    button.disabled = true;
+    button.textContent = "Signing in...";
 
-  try {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+    try {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-    const { data: loginData, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data: loginData, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-    if (loginError) {
-      throw new Error("Sign in failed. Check your email and password.");
-    }
-
-    const accessToken = loginData.session?.access_token;
-
-    if (!accessToken) {
-      throw new Error("Could not get your login session.");
-    }
-
-    message.textContent = "Checking staff access...";
-
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/clever-api`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-          action: "admin_orders"
-        })
+      if (loginError) {
+        throw new Error("Sign in failed. Check your email and password.");
       }
-    );
 
-    const result = await response.json();
+      const accessToken = loginData.session?.access_token;
 
-    if (!response.ok) {
-      throw new Error(result.error || `Server error: ${response.status}`);
-    }
+      if (!accessToken) {
+        throw new Error("Could not get your login session.");
+      }
 
-    message.style.color = "#284B38";
-    message.textContent =
-      `Access granted! Loaded ${result.orders.length} orders.`;
+      message.textContent = "Checking staff access...";
 
-    console.log("Admin orders:", result.orders);
-    console.log("Order items:", result.items);
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/clever-api`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            action: "admin_orders"
+          })
+        }
+      );
 
-  } catch (error) {
-    console.error("Admin login error:", error);
+      const result = await response.json();
 
-    message.style.color = "#a33b32";
-    message.textContent =
-      error instanceof Error ? error.message : "Something went wrong.";
-
-  } finally {
-    button.disabled = false;
-    button.textContent = "Sign In";
-  }
-});
-
+      if (!response.ok) {
+        throw new Error(result.error || `Server error: ${response.status}`);
+      }
 
       message.style.color = "#284B38";
-      message.textContent = "Signed in. Loading your dashboard...";
+      message.textContent =
+        `Access granted! Loaded ${result.orders.length} orders.`;
 
-      const { data: sessionData } = await supabase.auth.getSession();
-const accessToken = sessionData.session?.access_token;
+      console.log("Admin orders:", result.orders);
+      console.log("Order items:", result.items);
 
-const response = await fetch(
-  `${SUPABASE_URL}/functions/v1/clever-api`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({
-      action: "admin_orders"
-    })
-  }
-);
+    } catch (error) {
+      console.error("Admin login error:", error);
+      message.style.color = "#a33b32";
+      message.textContent =
+        error instanceof Error ? error.message : "Something went wrong.";
 
-const result = await response.json();
+    } finally {
+      button.disabled = false;
+      button.textContent = "Sign In";
+    }
+  });
+</script>
 
-if (!response.ok) {
-  message.style.color = "#a33b32";
-  message.textContent = result.error || "Access denied.";
-  return;
-}
-
-message.style.color = "#284B38";
-message.textContent =
-  `Access granted! Loaded ${result.orders.length} orders.`;
-    });
-  </script>
 </body>
 </html>
