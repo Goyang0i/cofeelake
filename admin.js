@@ -584,6 +584,25 @@ function showSection(section) {
   document.querySelector(".page-subtitle").textContent = titles[section][1];
 }
 
+
+let ordersRefreshInterval = null;
+
+function startOrdersAutoRefresh() {
+  if (ordersRefreshInterval) return;
+
+  ordersRefreshInterval = setInterval(() => {
+    loadOrders();
+  }, 5000);
+}
+
+function stopOrdersAutoRefresh() {
+  if (!ordersRefreshInterval) return;
+
+  clearInterval(ordersRefreshInterval);
+  ordersRefreshInterval = null;
+}
+
+
 function showApp(user) {
   loginScreen.classList.add("hidden");
   app.classList.remove("hidden");
@@ -599,6 +618,7 @@ function showApp(user) {
     "Good evening!";
 
   loadOrders();
+  startOrdersAutoRefresh();
 }
 
 loginForm.addEventListener("submit", async (event) => {
