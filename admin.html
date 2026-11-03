@@ -140,6 +140,35 @@
       message.style.color = "#284B38";
       message.textContent = "Signed in. Loading your dashboard...";
 
+      const { data: sessionData } = await supabase.auth.getSession();
+const accessToken = sessionData.session?.access_token;
+
+const response = await fetch(
+  `${SUPABASE_URL}/functions/v1/clever-api`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
+      action: "admin_orders"
+    })
+  }
+);
+
+const result = await response.json();
+
+if (!response.ok) {
+  message.style.color = "#a33b32";
+  message.textContent = result.error || "Access denied.";
+  return;
+}
+
+message.style.color = "#284B38";
+message.textContent =
+  `Access granted! Loaded ${result.orders.length} orders.`;
     });
   </script>
 </body>
