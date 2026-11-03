@@ -603,6 +603,11 @@ function renderLoyalty() {
     rewards > 0
       ? `You have ${rewards} free drink reward${rewards === 1 ? "" : "s"}!`
       : `${stamps} of 7 orders collected`;
+
+  const rewardButton = $("#use-reward-button");
+  if (rewardButton) {
+    rewardButton.hidden = rewards < 1;
+  }
 }
 
 
@@ -930,6 +935,37 @@ function initialize() {
       startOrderHistoryPolling(phone);
     }
   });
+
+  $("#use-reward-button").addEventListener("click", () => {
+  if (state.loyalty.rewardsAvailable < 1) {
+    showToast("You don't have a free drink reward yet.");
+    return;
+  }
+
+  state.rewardMode = true;
+
+  const allowedRewards = [
+    "espresso",
+    "double-espresso",
+    "americano",
+    "double-americano",
+    "cappuccino",
+    "latte"
+  ];
+
+  const rewardProducts = products.filter((product) =>
+    allowedRewards.includes(product.id)
+  );
+
+  if (!rewardProducts.length) {
+    state.rewardMode = false;
+    showToast("No reward drinks are available.");
+    return;
+  }
+
+  // Пока выбираем первый доступный напиток.
+  openProduct(rewardProducts[0].id);
+});
 
 
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
