@@ -2045,3 +2045,56 @@ h1, h2 {
       }
     }
 
+/* Order history: responsive receipt cards */
+#order-status-card {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 340px), 1fr)
+  );
+  align-items: start;
+  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+#order-status-card > .history-order {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  align-self: start;
+}
+
+.history-order-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.history-order-heading > strong {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-order-heading > .order-status-pill {
+  flex-shrink: 0;
+}
+
+.history-order-items {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.history-order-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
