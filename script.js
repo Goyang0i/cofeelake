@@ -395,7 +395,7 @@ function renderMenu() {
   });
 }
 
-function openProduct(productId) {
+function openProduct(productId, isReward = false) {
   const product = getProduct(productId);
   if (!product) return;
 
