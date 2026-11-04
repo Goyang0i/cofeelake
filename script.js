@@ -401,6 +401,7 @@ function openProduct(productId) {
 
   state.selectedProduct = product;
   state.selectedSizeIndex = 0;
+  state.rewardMode = isReward;
 
   $("#modal-product-image").src = product.image;
   $("#modal-product-image").alt = product.name;
@@ -419,6 +420,19 @@ function openProduct(productId) {
   updateModalPrice();
   $("#product-modal").hidden = false;
   document.body.classList.add("panel-open");
+}
+
+function openRewardDrinkPicker(rewardProducts) {
+  const picker = $("#reward-picker");
+  const select = $("#reward-drink-select");
+
+  select.innerHTML = rewardProducts.map((product) => `
+    <option value="${escapeHTML(product.id)}">
+      ${escapeHTML(product.name)}
+    </option>
+  `).join("");
+
+  picker.hidden = false;
 }
 
 function updateModalPrice() {
@@ -806,89 +820,97 @@ async function placeOrder(event) {
     return;
   }
 
-  
-const orderItems = state.basket.map((item) => ({
-  productId: item.productId,
-  name: item.name,
-  size: item.size,
-  sugar: item.sugar,
-  syrup: item.syrup,
-  quantity: item.quantity,
-  price: item.unitPrice
-}));
+  const rewardItems = state.basket.filter((item) => item.isReward);
+  const paidItems = state.basket.filter((item) => !item.isReward);
 
+  if (rewardItems.length > 1 || rewardItems.some((item) => item.quantity !== 1)) {
+    showToast("Only one free drink can be used per order.");
+    return;
+  }
+
+  const orderItems = paidItems.map((item) => ({
+    productId: item.productId,
+    name: item.name,
+    size: item.size,
+    sugar: item.sugar,
+    syrup: item.syrup,
+    quantity: item.quantity,
+    price: item.unitPrice
+  }));
+
+  const rewardItem = rewardItems.length === 1
+    ? {
+        productId: rewardItems[0].productId,
+        size: rewardItems[0].size,
+        sugar: rewardItems[0].sugar,
+        syrup: "None"
+      }
+    : null;
 
   const submitButton = $("#checkout-form").querySelector(
     'button[type="submit"]'
   );
 
-  if (submitButton) {
-    submitButton.disabled = true;
-  }
+  if (submitButton) submitButton.disabled = true;
 
   try {
-    
-const response = await fetch(
-  "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/functions/v1/clever-api",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd"
-    },
-    body: JSON.stringify({
-      name,
-      phone,
-      pickupTime,
-      paymentMethod,
-      items: orderItems
-    })
-  }
-);
-
+    const response = await fetch(
+      "https://zlzfdpsnrpnhpqbjnkhl.supabase.co/functions/v1/clever-api",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "sb_publishable_ICGMBgKXj4CPDBQd1qlyXg_O6rKOKLd"
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          pickupTime,
+          paymentMethod,
+          items: orderItems,
+          rewardItem
+        })
+      }
+    );
 
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-  console.error("Supabase error:", response.status, result);
-  throw new Error(
-    result.message ||
-    result.error ||
-    result.msg ||
-    `Server error: ${response.status}`
-  );
-}
+      console.error("Supabase error:", response.status, result);
+      throw new Error(
+        result.message ||
+        result.error ||
+        result.msg ||
+        `Server error: ${response.status}`
+      );
+    }
 
-    
-const orderNumber = result.orderNumber || "New order";
+    const orderNumber = result.orderNumber || "New order";
 
-state.basket = [];
-saveJSON("coffeelake-basket", state.basket);
+    state.basket = [];
+    state.rewardMode = false;
 
-renderBasket();
+    saveJSON("coffeelake-basket", state.basket);
+    renderBasket();
 
-closeModal($("#checkout-modal"));
-$("#checkout-form").reset();
+    closeModal($("#checkout-modal"));
+    $("#checkout-form").reset();
 
-$("#history-phone").value = phone;
+    $("#history-phone").value = phone;
 
-await loadOrderHistory(phone);
-startOrderHistoryPolling(phone);
+    await loadOrderHistory(phone);
+    startOrderHistoryPolling(phone);
 
-showToast(`Order ${orderNumber} placed successfully!`);
-
-$("#orders").scrollIntoView({ behavior: "smooth" });
+    showToast(`Order ${orderNumber} placed successfully!`);
+    $("#orders").scrollIntoView({ behavior: "smooth" });
 
   } catch (error) {
     console.error("Order submission failed:", error);
-
     showToast(
       error.message || "Could not place your order. Please try again."
     );
   } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
-    }
+    if (submitButton) submitButton.disabled = false;
   }
 }
 
@@ -938,6 +960,13 @@ function initialize() {
   $("#overlay").addEventListener("click", closeBasket);
   $("#checkout-button").addEventListener("click", openCheckout);
   $("#checkout-form").addEventListener("submit", placeOrder);
+
+ $("#reward-choose-button").addEventListener("click", () => {
+  const productId = $("#reward-drink-select").value;
+
+  $("#reward-picker").hidden = true;
+  openProduct(productId, true);
+});
   
   $("#order-lookup-form").addEventListener("submit", async (event) => {
     event.preventDefault();
