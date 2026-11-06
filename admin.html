@@ -221,31 +221,90 @@
         </div>
       </section>
 
-      <section id="analytics-section" class="hidden">
-        <div class="panel">
-          <div class="panel-heading">
-            <h2>Analytics</h2>
-          </div>
-          <p class="empty-note">
-            Popular drinks and order statistics are calculated from the orders currently loaded from Supabase.
-          </p>
-          <div id="analytics-summary"></div>
-        </div>
-      </section>
+      <!-- ANALYTICS -->
+<section id="analytics-section" class="hidden">
+  <div class="admin-stats-grid">
+    <article class="panel admin-metric">
+      <span>Total orders</span>
+      <strong id="analytics-orders">0</strong>
+    </article>
+    <article class="panel admin-metric">
+      <span>Revenue</span>
+      <strong id="analytics-revenue">0 ₸</strong>
+    </article>
+    <article class="panel admin-metric">
+      <span>Average order</span>
+      <strong id="analytics-average">0 ₸</strong>
+    </article>
+    <article class="panel admin-metric">
+      <span>Cancelled orders</span>
+      <strong id="analytics-cancelled">0</strong>
+    </article>
+  </div>
 
-      <section id="menu-section" class="hidden">
-        <div class="panel placeholder-panel">
-          <h2>Menu</h2>
-          <p>Menu management will be connected in a later step.</p>
-        </div>
-      </section>
+  <div class="panel admin-section-panel">
+    <div class="panel-heading">
+      <h2>Best-selling drinks</h2>
+      <span class="admin-muted">Based on loaded orders</span>
+    </div>
+    <div id="analytics-products" class="admin-product-list">
+      <div class="empty-note">Loading analytics...</div>
+    </div>
+  </div>
 
-      <section id="settings-section" class="hidden">
-        <div class="panel placeholder-panel">
-          <h2>Settings</h2>
-          <p>Staff and café settings will be added here.</p>
-        </div>
-      </section>
+  <div class="panel admin-section-panel">
+    <div class="panel-heading">
+      <h2>Order status</h2>
+    </div>
+    <div id="analytics-statuses" class="admin-status-list"></div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu-section" class="hidden">
+  <div class="panel admin-section-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Menu management</h2>
+        <p class="admin-muted">Your existing product photos are stored in the images folder.</p>
+      </div>
+    </div>
+
+    <div class="admin-menu-notice">
+      The product editor will be connected to your actual menu database
+      after we confirm its table and column names.
+    </div>
+
+    <div id="admin-menu-products" class="admin-menu-grid"></div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings-section" class="hidden">
+  <div class="panel admin-section-panel">
+    <div class="panel-heading">
+      <h2>Café information</h2>
+    </div>
+
+    <form id="cafe-settings-form" class="admin-settings-form">
+      <label for="setting-cafe-name">Café name</label>
+      <input id="setting-cafe-name" type="text" value="Coffee Lake">
+
+      <label for="setting-tagline">Tagline</label>
+      <input id="setting-tagline" type="text" value="Your Campus Café">
+
+      <label for="setting-currency">Currency</label>
+      <select id="setting-currency">
+        <option value="₸">KZT (₸)</option>
+        <option value="$">USD ($)</option>
+        <option value="€">EUR (€)</option>
+      </select>
+
+      <button class="primary-button" type="submit">Save settings</button>
+      <p id="settings-message" class="admin-muted" role="status"></p>
+    </form>
+  </div>
+</section>
 
     </main>
   </div>
