@@ -2428,9 +2428,13 @@ h1, h2 {
 }
 
 .brand-mark img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  object-position: center;
-  display: block;
+    display: block;
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px;
+    max-height: 18px;
+    object-fit: contain;
+    object-position: center;
+    margin: 0;
+    padding: 0;
 }
