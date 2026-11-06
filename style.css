@@ -2390,15 +2390,22 @@ h1, h2 {
 
 
 .logo-icon {
-  display: flex;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  flex: 0 0 38px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: 50%;
 }
 
 .logo-icon img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 50%;
 }
