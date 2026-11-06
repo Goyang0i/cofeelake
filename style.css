@@ -2406,10 +2406,10 @@ h1, h2 {
 
 .logo-icon img {
     display: block;
-    width: 30px !important;
-    height: 30px !important;
-    max-width: 30px;
-    max-height: 30px;
+    width: 40px !important;
+    height: 40px !important;
+    max-width: 40px;
+    max-height: 40px;
     object-fit: contain;
     object-position: center;
     margin: 0;
