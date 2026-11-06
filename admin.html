@@ -260,22 +260,77 @@
   </div>
 </section>
 
-<!-- MENU -->
 <section id="menu-section" class="hidden">
-  <div class="panel admin-section-panel">
-    <div class="panel-heading">
+  <div class="panel admin-menu-panel">
+    <div class="panel-heading admin-menu-heading">
       <div>
         <h2>Menu management</h2>
-        <p class="admin-muted">Your existing product photos are stored in the images folder.</p>
+        <p class="admin-menu-subtitle">Manage products, photos, availability and size prices.</p>
       </div>
+      <button class="primary-button" id="add-product-button" type="button">+ Add product</button>
     </div>
 
-    <div class="admin-menu-notice">
-      The product editor will be connected to your actual menu database
-      after we confirm its table and column names.
+    <div class="admin-menu-toolbar">
+      <input id="menu-search" type="search" placeholder="Search products..." aria-label="Search products">
+      <select id="menu-category-filter" aria-label="Filter by category">
+        <option value="">All categories</option>
+      </select>
+      <select id="menu-availability-filter" aria-label="Filter by availability">
+        <option value="all">All products</option>
+        <option value="available">Available</option>
+        <option value="unavailable">Unavailable</option>
+      </select>
     </div>
 
-    <div id="admin-menu-products" class="admin-menu-grid"></div>
+    <p id="menu-message" class="admin-menu-message" role="status"></p>
+    <div id="menu-products-grid" class="admin-menu-grid">
+      <p class="empty-note">Menu products will appear here.</p>
+    </div>
+  </div>
+
+  <div id="product-editor" class="admin-product-editor hidden" aria-labelledby="product-editor-title">
+    <form id="product-form" class="panel admin-product-form">
+      <div class="panel-heading">
+        <h2 id="product-editor-title">Add product</h2>
+        <button type="button" class="text-button" id="close-product-editor">Close ✕</button>
+      </div>
+
+      <input type="hidden" id="product-id">
+
+      <div class="admin-form-grid">
+        <label>Product name
+          <input id="product-name" type="text" maxlength="120" required>
+        </label>
+        <label>Category
+          <input id="product-category" type="text" maxlength="80" required placeholder="Coffee, Tea, Bubble Tea...">
+        </label>
+        <label class="admin-form-wide">Description
+          <textarea id="product-description" rows="3" maxlength="500"></textarea>
+        </label>
+        <label class="admin-form-wide">Image path
+          <input id="product-image" type="text" placeholder="images/latte.jpg" required>
+          <small>Enter the existing image path relative to the website, for example images/latte.jpg.</small>
+        </label>
+        <label class="admin-availability-field">
+          <input id="product-available" type="checkbox" checked>
+          Available for sale
+        </label>
+      </div>
+
+      <div class="admin-size-editor">
+        <div class="panel-heading">
+          <h3>Sizes and prices</h3>
+          <button type="button" class="text-button" id="add-size-row">+ Add size</button>
+        </div>
+        <div id="product-sizes-editor"></div>
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="button" class="admin-secondary-button" id="cancel-product-edit">Cancel</button>
+        <button type="submit" class="primary-button" id="save-product-button">Save product</button>
+      </div>
+      <p id="product-form-message" class="admin-menu-message" role="status"></p>
+    </form>
   </div>
 </section>
 
