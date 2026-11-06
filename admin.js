@@ -582,6 +582,9 @@ function showSection(section) {
 
   $("greeting").textContent = titles[section][0];
   document.querySelector(".page-subtitle").textContent = titles[section][1];
+  if (section === "analytics") {
+  renderAnalytics();
+}
 }
 
 
@@ -737,3 +740,185 @@ if (existingSession.session?.user) {
     await supabase.auth.signOut();
   }
 }
+
+
+// =====================================
+// NEW ADMIN PAGES
+// =====================================
+
+function imageForDrink(name) {
+  const rawKey = String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+
+  const underscoreKey = rawKey.replace(/-/g, "_");
+  const normalizedKey = rawKey.replace(/_/g, "-");
+
+  return drinkImages[rawKey] ||
+    drinkImages[underscoreKey] ||
+    drinkImages[normalizedKey] ||
+    "";
+}
+
+
+// ANALYTICS
+
+function renderAnalytics() {
+  const validOrders = orders.filter(
+    order => order.status !== "cancelled"
+  );
+
+  const revenue = validOrders.reduce(
+    (sum, order) => sum + Number(order.total || 0), 0
+  );
+
+  const average = validOrders.length
+    ? revenue / validOrders.length
+    : 0;
+
+  $("analytics-orders").textContent = validOrders.length;
+  $("analytics-revenue").textContent = money(revenue);
+  $("analytics-average").textContent = money(Math.round(average));
+
+  $("analytics-cancelled").textContent =
+    orders.filter(order => order.status === "cancelled").length;
+
+  const totals = new Map();
+
+  orderItems.forEach(item => {
+    const order = orders.find(
+      entry => String(entry.id) === String(item.order_id)
+    );
+
+    if (!order || order.status === "cancelled") return;
+
+    const name = item.product_name || "Unknown drink";
+    const quantity = Number(item.quantity || 1);
+
+    totals.set(name, (totals.get(name) || 0) + quantity);
+  });
+
+  const popular = [...totals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  const max = popular[0]?.[1] || 1;
+
+  $("analytics-products").innerHTML = popular.length
+    ? popular.map(([name, count]) => {
+        const image = imageForDrink(name);
+
+        return `
+          <div class="admin-product-row">
+            <div class="admin-product-image">
+              ${image
+                ? `<img src="${image}" alt="${escapeHTML(name)}">`
+                : "☕"}
+            </div>
+            <div class="admin-product-info">
+              <strong>${escapeHTML(name)}</strong>
+              <span>${count} sold</span>
+              <div class="admin-progress">
+                <div style="width:${count / max * 100}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : '<p class="empty-note">No product sales data yet.</p>';
+
+  const statuses = [
+    "received",
+    "preparing",
+    "ready",
+    "completed",
+    "cancelled"
+  ];
+
+  $("analytics-statuses").innerHTML = statuses.map(status => {
+    const count = orders.filter(
+      order => order.status === status
+    ).length;
+
+    return `
+      <div class="admin-status-row">
+        <span>${escapeHTML(statusLabel(status))}</span>
+        <strong>${count}</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+
+// MENU PHOTO PREVIEW
+
+function renderAdminMenuPhotos() {
+  const container = $("admin-menu-products");
+
+  container.innerHTML = Object.entries(drinkImages).map(
+    ([key, image]) => {
+      const name = key
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+
+      return `
+        <article class="admin-menu-card">
+          <img src="${image}" alt="${escapeHTML(name)}"
+               onerror="this.style.display='none'">
+          <div>
+            <strong>${escapeHTML(name)}</strong>
+            <span>${escapeHTML(image)}</span>
+          </div>
+        </article>
+      `;
+    }
+  ).join("");
+}
+
+
+// SETTINGS
+
+function loadCafeSettings() {
+  let settings = {};
+
+  try {
+    settings = JSON.parse(
+      localStorage.getItem("coffeeLakeAdminSettings") || "{}"
+    );
+  } catch (error) {
+    console.warn("Could not read café settings:", error);
+  }
+
+  $("setting-cafe-name").value =
+    settings.name || "Coffee Lake";
+
+  $("setting-tagline").value =
+    settings.tagline || "Your Campus Café";
+
+  $("setting-currency").value =
+    settings.currency || "₸";
+}
+
+$("cafe-settings-form").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const settings = {
+    name: $("setting-cafe-name").value.trim(),
+    tagline: $("setting-tagline").value.trim(),
+    currency: $("setting-currency").value
+  };
+
+  localStorage.setItem(
+    "coffeeLakeAdminSettings",
+    JSON.stringify(settings)
+  );
+
+  $("settings-message").textContent = "Settings saved in this browser.";
+});
+
+
+// INITIALIZE NEW PAGES
+
+renderAdminMenuPhotos();
+loadCafeSettings();
