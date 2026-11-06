@@ -2406,10 +2406,10 @@ h1, h2 {
 
 .logo-icon img {
     display: block;
-    width: 24px !important;
-    height: 24px !important;
-    max-width: 24px;
-    max-height: 24px;
+    width: 50px !important;
+    height: 50px !important;
+    max-width: 50px;
+    max-height: 50px;
     object-fit: contain;
     object-position: center;
     margin: 0;
@@ -2429,10 +2429,10 @@ h1, h2 {
 
 .brand-mark img {
     display: block;
-    width: 100px !important;
-    height: 100px !important;
-    max-width: 100px;
-    max-height: 100px;
+    width: 50px !important;
+    height: 50px !important;
+    max-width: 50px;
+    max-height: 50px;
     object-fit: contain;
     object-position: center;
     margin: 0;
