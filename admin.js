@@ -8,6 +8,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = (id) => document.getElementById(id);
 
+let menuProducts = [];
+let menuLoaded = false;
+
 const loginScreen = $("login-screen");
 const app = $("app");
 const loginForm = $("login-form");
@@ -852,31 +855,6 @@ function renderAnalytics() {
 }
 
 
-// MENU PHOTO PREVIEW
-
-function renderAdminMenuPhotos() {
-  const container = $("admin-menu-products");
-
-  container.innerHTML = Object.entries(drinkImages).map(
-    ([key, image]) => {
-      const name = key
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, letter => letter.toUpperCase());
-
-      return `
-        <article class="admin-menu-card">
-          <img src="${image}" alt="${escapeHTML(name)}"
-               onerror="this.style.display='none'">
-          <div>
-            <strong>${escapeHTML(name)}</strong>
-            <span>${escapeHTML(image)}</span>
-          </div>
-        </article>
-      `;
-    }
-  ).join("");
-}
-
 
 // SETTINGS
 
@@ -920,14 +898,9 @@ $("cafe-settings-form").addEventListener("submit", event => {
 
 
 // INITIALIZE NEW PAGES
-
-renderAdminMenuPhotos();
 loadCafeSettings();
 
 // ===== MENU MANAGEMENT (products + product_sizes) =====
-let menuProducts = [];
-let menuLoaded = false;
-
 function menuImagePath(product) {
   const path = String(product.image || "").trim();
   return path || "";
