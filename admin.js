@@ -448,17 +448,6 @@ function renderDashboard() {
   renderPopularDrinks();
   renderOrdersTable();
   renderOrderDetails();
-
-  const active = orders.filter(order => order.status !== "cancelled");
-  const revenue = active.reduce(
-    (sum, order) => sum + Number(order.total || 0), 0
-  );
-
-  $("analytics-summary").innerHTML = `
-    <p>Total loaded orders: <strong>${orders.length}</strong></p>
-    <p>Non-cancelled revenue: <strong>${money(revenue)}</strong></p>
-    <p>Cancelled orders: <strong>${orders.filter(order => order.status === "cancelled").length}</strong></p>
-  `;
 }
 
 async function callAdmin(action, extra = {}) {
