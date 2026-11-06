@@ -585,6 +585,7 @@ function showSection(section) {
   if (section === "analytics") {
   renderAnalytics();
 }
+  if (section === "menu") loadMenuProducts();
 }
 
 
@@ -922,3 +923,286 @@ $("cafe-settings-form").addEventListener("submit", event => {
 
 renderAdminMenuPhotos();
 loadCafeSettings();
+
+// ===== MENU MANAGEMENT (products + product_sizes) =====
+let menuProducts = [];
+let menuLoaded = false;
+
+function menuImagePath(product) {
+  const path = String(product.image || "").trim();
+  return path || "";
+}
+
+function menuMessage(message, isError = false) {
+  const node = $("menu-message");
+  if (!node) return;
+  node.textContent = message;
+  node.classList.toggle("is-error", isError);
+}
+
+function renderMenuCategoryFilter() {
+  const select = $("menu-category-filter");
+  if (!select) return;
+  const previous = select.value;
+  const categories = [...new Set(menuProducts.map(p => String(p.category || "").trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  select.innerHTML = '<option value="">All categories</option>' +
+    categories.map(category => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`).join("");
+  select.value = categories.includes(previous) ? previous : "";
+}
+
+function renderMenuProducts() {
+  const grid = $("menu-products-grid");
+  if (!grid) return;
+
+  const search = ($("menu-search")?.value || "").trim().toLowerCase();
+  const category = $("menu-category-filter")?.value || "";
+  const availability = $("menu-availability-filter")?.value || "all";
+
+  const filtered = menuProducts.filter(product => {
+    const matchesSearch = `${product.name || ""} ${product.category || ""}`.toLowerCase().includes(search);
+    const matchesCategory = !category || product.category === category;
+    const available = product.is_available !== false;
+    const matchesAvailability = availability === "all" ||
+      (availability === "available" && available) ||
+      (availability === "unavailable" && !available);
+    return matchesSearch && matchesCategory && matchesAvailability;
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-note admin-menu-empty">No products match these filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(product => {
+    const sizes = Array.isArray(product.product_sizes) ? product.product_sizes : [];
+    const priceText = sizes.length
+      ? sizes.map(size => `${escapeHTML(size.size_name)}: ${money(size.price)}`).join(" · ")
+      : "No sizes or prices";
+    const image = menuImagePath(product);
+    return `
+      <article class="admin-menu-card">
+        <div class="admin-menu-photo">
+          ${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false">` : ""}
+          <span class="admin-menu-photo-fallback" ${image ? "hidden" : ""}>☕</span>
+          <span class="admin-menu-availability ${product.is_available === false ? "unavailable" : ""}">
+            ${product.is_available === false ? "Unavailable" : "Available"}
+          </span>
+        </div>
+        <div class="admin-menu-card-content">
+          <div class="admin-menu-card-top">
+            <div>
+              <h3>${escapeHTML(product.name)}</h3>
+              <span class="admin-menu-category">${escapeHTML(product.category || "Uncategorised")}</span>
+            </div>
+          </div>
+          <p class="admin-menu-description">${escapeHTML(product.description || "No description")}</p>
+          <p class="admin-menu-prices">${priceText}</p>
+          <div class="admin-menu-card-actions">
+            <button type="button" class="admin-secondary-button" data-edit-product="${escapeHTML(product.id)}">Edit</button>
+            <button type="button" class="admin-secondary-button" data-toggle-product="${escapeHTML(product.id)}">
+              ${product.is_available === false ? "Make available" : "Make unavailable"}
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadMenuProducts(force = false) {
+  if (menuLoaded && !force) {
+    renderMenuProducts();
+    return;
+  }
+
+  menuMessage("Loading menu...");
+  const grid = $("menu-products-grid");
+  if (grid) grid.innerHTML = '<p class="empty-note">Loading products...</p>';
+
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, category, description, image, is_available, created_at, product_sizes(id, product_id, size_name, price)")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    menuProducts = (data || []).map(product => ({
+      ...product,
+      product_sizes: Array.isArray(product.product_sizes) ? product.product_sizes : []
+    }));
+    menuLoaded = true;
+    renderMenuCategoryFilter();
+    renderMenuProducts();
+    menuMessage(`${menuProducts.length} products loaded.`);
+  } catch (error) {
+    console.error("Could not load menu products:", error);
+    if (grid) grid.innerHTML = '<p class="empty-note">Could not load products.</p>';
+    menuMessage(error.message || "Could not load menu products. Check Supabase permissions (RLS).", true);
+  }
+}
+
+function addProductSizeRow(size = {}) {
+  const container = $("product-sizes-editor");
+  if (!container) return;
+  const row = document.createElement("div");
+  row.className = "admin-size-row";
+  row.innerHTML = `
+    <label>Size name
+      <input class="size-name-input" type="text" maxlength="40" placeholder="Regular" value="${escapeHTML(size.size_name || "")}" required>
+    </label>
+    <label>Price (₸)
+      <input class="size-price-input" type="number" min="0" step="1" placeholder="1200" value="${size.price == null ? "" : escapeHTML(size.price)}" required>
+    </label>
+    <button type="button" class="admin-remove-size" aria-label="Remove size">×</button>
+  `;
+  row.querySelector(".admin-remove-size").addEventListener("click", () => {
+    row.remove();
+    if (!container.children.length) addProductSizeRow();
+  });
+  container.appendChild(row);
+}
+
+function openProductEditor(product = null) {
+  $("product-form").reset();
+  $("product-id").value = product?.id || "";
+  $("product-name").value = product?.name || "";
+  $("product-category").value = product?.category || "";
+  $("product-description").value = product?.description || "";
+  $("product-image").value = product?.image || "";
+  $("product-available").checked = product ? product.is_available !== false : true;
+  $("product-editor-title").textContent = product ? "Edit product" : "Add product";
+  $("save-product-button").textContent = product ? "Save changes" : "Add product";
+  $("product-form-message").textContent = "";
+
+  const sizesEditor = $("product-sizes-editor");
+  sizesEditor.innerHTML = "";
+  const sizes = product?.product_sizes?.length ? product.product_sizes : [{ size_name: "", price: "" }];
+  sizes.forEach(size => addProductSizeRow(size));
+
+  $("product-editor").classList.remove("hidden");
+  $("product-editor").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeProductEditor() {
+  $("product-editor").classList.add("hidden");
+  $("product-form").reset();
+}
+
+async function saveMenuProduct(event) {
+  event.preventDefault();
+  const saveButton = $("save-product-button");
+  const message = $("product-form-message");
+  saveButton.disabled = true;
+  message.textContent = "Saving...";
+
+  try {
+    const name = $("product-name").value.trim();
+    const category = $("product-category").value.trim();
+    const image = $("product-image").value.trim();
+    const sizeRows = [...$("product-sizes-editor").querySelectorAll(".admin-size-row")];
+    const sizes = sizeRows.map(row => ({
+      size_name: row.querySelector(".size-name-input").value.trim(),
+      price: Number(row.querySelector(".size-price-input").value)
+    }));
+
+    if (!name || !category || !image) throw new Error("Fill in the product name, category and image path.");
+    if (!image.startsWith("images/")) throw new Error("Image path must start with images/.");
+    if (!sizes.length || sizes.some(size => !size.size_name || !Number.isFinite(size.price) || size.price < 0)) {
+      throw new Error("Add at least one size and enter a valid non-negative price for each size.");
+    }
+
+    const duplicateSizes = sizes.map(size => size.size_name.toLowerCase());
+    if (new Set(duplicateSizes).size !== duplicateSizes.length) {
+      throw new Error("Size names must be unique within a product.");
+    }
+
+    const productPayload = {
+      name,
+      category,
+      description: $("product-description").value.trim(),
+      image,
+      is_available: $("product-available").checked
+    };
+
+    const productId = $("product-id").value;
+    let savedProduct;
+
+    if (productId) {
+      const { data, error } = await supabase.from("products")
+        .update(productPayload).eq("id", productId)
+        .select("id").single();
+      if (error) throw error;
+      savedProduct = data;
+    } else {
+      const { data, error } = await supabase.from("products")
+        .insert(productPayload).select("id").single();
+      if (error) throw error;
+      savedProduct = data;
+    }
+
+    const { error: sizeDeleteError } = await supabase
+      .from("product_sizes").delete().eq("product_id", savedProduct.id);
+    if (sizeDeleteError) throw sizeDeleteError;
+
+    const sizePayload = sizes.map(size => ({
+      product_id: savedProduct.id,
+      size_name: size.size_name,
+      price: size.price
+    }));
+    const { error: sizeInsertError } = await supabase.from("product_sizes").insert(sizePayload);
+    if (sizeInsertError) throw sizeInsertError;
+
+    closeProductEditor();
+    await loadMenuProducts(true);
+    menuMessage(productId ? "Product updated successfully." : "Product added successfully.");
+  } catch (error) {
+    console.error("Could not save product:", error);
+    message.textContent = error.message || "Could not save product.";
+    message.classList.add("is-error");
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function toggleProductAvailability(productId) {
+  const product = menuProducts.find(item => String(item.id) === String(productId));
+  if (!product) return;
+  const nextValue = product.is_available === false;
+  const confirmation = nextValue
+    ? `Make "${product.name}" available for sale?`
+    : `Make "${product.name}" unavailable? It will remain in the database and order history.`;
+  if (!window.confirm(confirmation)) return;
+
+  try {
+    const { error } = await supabase.from("products")
+      .update({ is_available: nextValue }).eq("id", productId);
+    if (error) throw error;
+    await loadMenuProducts(true);
+    menuMessage(nextValue ? "Product is now available." : "Product is now unavailable.");
+  } catch (error) {
+    console.error("Could not update product availability:", error);
+    menuMessage(error.message || "Could not update product availability.", true);
+  }
+}
+
+$("add-product-button")?.addEventListener("click", () => openProductEditor());
+$("close-product-editor")?.addEventListener("click", closeProductEditor);
+$("cancel-product-edit")?.addEventListener("click", closeProductEditor);
+$("add-size-row")?.addEventListener("click", () => addProductSizeRow());
+$("product-form")?.addEventListener("submit", saveMenuProduct);
+$("menu-search")?.addEventListener("input", renderMenuProducts);
+$("menu-category-filter")?.addEventListener("change", renderMenuProducts);
+$("menu-availability-filter")?.addEventListener("change", renderMenuProducts);
+
+$("menu-products-grid")?.addEventListener("click", event => {
+  const editButton = event.target.closest("[data-edit-product]");
+  if (editButton) {
+    const product = menuProducts.find(item => String(item.id) === String(editButton.dataset.editProduct));
+    if (product) openProductEditor(product);
+    return;
+  }
+  const toggleButton = event.target.closest("[data-toggle-product]");
+  if (toggleButton) toggleProductAvailability(toggleButton.dataset.toggleProduct);
+});
