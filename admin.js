@@ -945,8 +945,16 @@ function renderMenuProducts() {
     return `
       <article class="admin-menu-card">
         <div class="admin-menu-photo">
-          ${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false">` : ""}
-          <span class="admin-menu-photo-fallback" ${image ? "hidden" : ""}>☕</span>
+  ${image ? `
+    <img
+      src="${escapeHTML(image)}"
+      alt="${escapeHTML(product.name)}"
+      loading="lazy"
+      onload="this.nextElementSibling.hidden=true"
+      onerror="this.hidden=true; this.nextElementSibling.hidden=false"
+    >
+  ` : ""}
+  <span class="admin-menu-photo-fallback" ${image ? "hidden" : ""}>☕</span>
           <span class="admin-menu-availability ${product.is_available === false ? "unavailable" : ""}">
             ${product.is_available === false ? "Unavailable" : "Available"}
           </span>
